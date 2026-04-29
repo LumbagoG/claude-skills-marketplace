@@ -5,11 +5,9 @@ A personal Claude Code / Cowork plugin marketplace by Gleb. Currently ships one 
 ## Install
 
 ```bash
-/plugin marketplace add gleblubiskin/claude-skills-marketplace
+/plugin marketplace add LumbagoG/claude-skills-marketplace
 /plugin install task-planner@claude-skills-marketplace
 ```
-
-> Replace `gleblubiskin` with the actual GitHub owner once published.
 
 ## Plugins
 
