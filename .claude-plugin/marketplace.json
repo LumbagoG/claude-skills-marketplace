@@ -1,0 +1,24 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-skills-marketplace",
+  "description": "Personal collection of Claude skills by Gleb. Currently ships task-planner — a structured workflow for turning vague feature requests into rigorous, FSD-aware implementation plans with phases, risks, and a wiki-task artifact.",
+  "owner": {
+    "name": "Gleb",
+    "email": "gleblubiskin.cursor@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "task-planner",
+      "description": "Turn vague feature requests into rigorous implementation plans: clarifying questions → schema/API design → FSD slice mapping → phased roadmap with agent assignments → risks/GOTCHA → wiki task artifact.",
+      "source": "./plugins/task-planner",
+      "version": "0.1.0",
+      "category": "productivity",
+      "keywords": ["planning", "spec", "fsd", "task", "wiki", "architecture"],
+      "author": {
+        "name": "Gleb",
+        "email": "gleblubiskin.cursor@gmail.com"
+      },
+      "license": "MIT"
+    }
+  ]
+}
