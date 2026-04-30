@@ -1,0 +1,11 @@
+{
+  "name": "task-business-planner",
+  "description": "Non-technical, business-only feature planning mode. Activates session-wide on persona-declaration phrases ('Я представляю бизнес'). Produces business-draft artifacts that the companion task-planner skill auto-detects and refines into technical plans.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Gleb",
+    "email": "gleblubiskin.cursor@gmail.com"
+  },
+  "license": "MIT",
+  "keywords": ["planning", "business", "product", "non-technical", "task", "wiki", "elo-tt"]
+}

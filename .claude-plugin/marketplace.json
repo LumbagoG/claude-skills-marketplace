@@ -9,11 +9,24 @@
   "plugins": [
     {
       "name": "task-planner",
-      "description": "Turn vague feature requests into rigorous implementation plans: clarifying questions → schema/API design → FSD slice mapping → phased roadmap with agent assignments → risks/GOTCHA → wiki task artifact.",
+      "description": "Turn vague feature requests into rigorous implementation plans: clarifying questions → schema/API design → FSD slice mapping → phased roadmap with agent assignments → risks/GOTCHA → wiki task artifact. Auto-detects business-drafts produced by task-business-planner and appends technical refinement to the same file.",
       "source": "./plugins/task-planner",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "productivity",
       "keywords": ["planning", "spec", "fsd", "task", "wiki", "architecture"],
+      "author": {
+        "name": "Gleb",
+        "email": "gleblubiskin.cursor@gmail.com"
+      },
+      "license": "MIT"
+    },
+    {
+      "name": "task-business-planner",
+      "description": "Non-technical, business-only feature planning mode for product partners who don't write code. Activates session-wide on persona-declaration phrases ('Я представляю бизнес'). Produces business-draft artifacts auto-detected by the companion task-planner skill.",
+      "source": "./plugins/task-business-planner",
+      "version": "0.1.0",
+      "category": "productivity",
+      "keywords": ["planning", "business", "product", "non-technical", "task", "wiki", "elo-tt"],
       "author": {
         "name": "Gleb",
         "email": "gleblubiskin.cursor@gmail.com"

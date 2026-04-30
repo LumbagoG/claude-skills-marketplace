@@ -1,62 +1,113 @@
 # claude-skills-marketplace
 
-A personal Claude Code / Cowork plugin marketplace by Gleb. Currently ships one plugin: **task-planner**.
+A personal Claude Code / Cowork plugin marketplace by Gleb. Currently ships **two coupled skills** that together cover the full lifecycle of a feature: from a non-technical partner's idea to a complete technical implementation plan.
 
 ## Install
 
 ```bash
 /plugin marketplace add LumbagoG/claude-skills-marketplace
 /plugin install task-planner@claude-skills-marketplace
+/plugin install task-business-planner@claude-skills-marketplace
 ```
 
 ## Plugins
 
+### task-business-planner
+
+For the **non-technical product partner** who doesn't write code. Activates session-wide on persona-declaration phrases like "Я представляю бизнес". Asks 3–5 business-only clarifying questions (who / why / when / how does it look), produces an artifact in `wiki/tasks/` marked as `business-draft` — explicitly NOT ready for development.
+
+No code, no schema, no jargon — pure product framing.
+
+[See task-business-planner →](plugins/task-business-planner/README.md)
+
 ### task-planner
 
-Turn vague feature requests into rigorous, FSD-aware implementation plans.
+For the **developer**. Turns a vague feature request into a rigorous, FSD-aware implementation plan: clarifying questions → schema (verbatim) → API contracts → layer-mapping table → phased roadmap → risks/GOTCHA → wiki-task artifact.
 
-**Triggers on phrases like:**
-- "Спланируй мне задачу — хочу добавить функционал X"
-- "Распиши план интеграции Y"
-- "Let's spec out [feature]"
-- "Draft an implementation plan for [feature]"
+**Auto-detects business-drafts** produced by `task-business-planner` and appends technical refinement to the same file (no duplicate artifacts, no re-asking the partner's already-answered questions).
 
-**The five-phase workflow:**
-1. **Discover** — silent scan of project context (`wiki/_meta/hot.md`, schema, similar artifacts).
-2. **Clarify** — 2–4 questions per round, max 2 rounds. Covers modeling, cardinality, integration depth, lifecycle.
-3. **Design** — schema (verbatim), API contracts, layer-mapping table (FSD-aware), architectural decisions, risks/GOTCHA.
-4. **Phase** — 8–14 numbered phases with owner agent and status, ending in QA gate.
-5. **Document** — produces a wiki-task artifact following the project's existing template.
+[See task-planner →](plugins/task-planner/README.md)
 
-See [`plugins/task-planner/README.md`](plugins/task-planner/README.md) for full details and [`plugins/task-planner/skills/task-planner/references/example-trainers-task.md`](plugins/task-planner/skills/task-planner/references/example-trainers-task.md) for a full real-world example.
+## How they work together
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  Partner (non-technical)                                            │
+│  "Я представляю бизнес. Хочу чтобы тренеры могли..."                │
+│         │                                                            │
+│         ▼                                                            │
+│  task-business-planner                                              │
+│   • Reads project context (hot.md, index.md, domain glossary)       │
+│   • Asks 3-5 product questions (no tech)                            │
+│   • Writes wiki/tasks/002.md with status: business-draft            │
+│   • Adds row to wiki/tasks/index.md → "🔮 Бизнес-черновики"         │
+└─────────────────────────────────────────────────────────────────────┘
+
+                              [days/weeks pass]
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  Developer                                                          │
+│  "Распиши техплан задачи 002" OR "Хочу добавить рассылки тренеров"  │
+│         │                                                            │
+│         ▼                                                            │
+│  task-planner                                                       │
+│   • Phase 1.5: scans index.md → finds matching business-draft       │
+│   • Confirms with developer ("Беру черновик 002 в работу?")         │
+│   • Skips business clarification (already answered)                 │
+│   • Asks ONLY technical questions (modeling/cardinality/lifecycle)  │
+│   • Appends schema + API + FSD table + phases to SAME file 002.md   │
+│   • Changes status: business-draft → pending, ready_for_dev: true   │
+│   • Moves row index.md → "🟡 Очередь" (ready for implementation)    │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+The result is a single artifact that contains:
+- The verbatim partner prompt
+- The product framing (persona, JTBD, metrics, scenarios, UX)
+- The technical plan (schema, API, FSD, phases, risks)
+- The implementation result (commits, tests, links)
+
+This is the same artifact pattern as a Spec-Driven-Development workflow, but split across two human roles cleanly.
 
 ## Repository layout
 
 ```
 .
 ├── .claude-plugin/
-│   └── marketplace.json          # marketplace manifest
+│   └── marketplace.json               # marketplace manifest (lists both plugins)
 ├── plugins/
-│   └── task-planner/
-│       ├── .claude-plugin/
-│       │   └── plugin.json       # plugin manifest
-│       ├── skills/
-│       │   └── task-planner/
-│       │       ├── SKILL.md
-│       │       └── references/
-│       │           ├── clarifying-questions-guide.md
-│       │           ├── architecture-mapping.md
-│       │           ├── task-template.md
-│       │           └── example-trainers-task.md
+│   ├── task-planner/                  # developer skill
+│   │   ├── .claude-plugin/plugin.json
+│   │   ├── skills/task-planner/
+│   │   │   ├── SKILL.md
+│   │   │   └── references/
+│   │   │       ├── clarifying-questions-guide.md
+│   │   │       ├── architecture-mapping.md
+│   │   │       ├── task-template.md
+│   │   │       └── example-trainers-task.md
+│   │   └── README.md
+│   └── task-business-planner/         # non-technical partner skill
+│       ├── .claude-plugin/plugin.json
+│       ├── skills/task-business-planner/
+│       │   ├── SKILL.md
+│       │   └── references/
+│       │       ├── business-clarifying-questions.md
+│       │       ├── business-artifact-template.md
+│       │       ├── elo-tt-domain.md
+│       │       └── example-business-task.md
 │       └── README.md
 ├── README.md
 ├── LICENSE
 └── .gitignore
 ```
 
+## Project context
+
+Both skills are written for the **elo-tt** project (table tennis platform: clubs, tournaments, ELO, bookings, forum, chat, trainers in roadmap). The skills use project-specific vocabulary in their reference files. If you fork for another project, replace `elo-tt-domain.md` and `example-*.md` with your own equivalents.
+
 ## Contributing
 
-This is a personal marketplace, but plugins follow the [official Claude Code plugin structure](https://code.claude.com/docs/en/plugin-marketplaces). PRs welcome if you find a bug or want to suggest an improvement.
+Personal marketplace, but PRs welcome if you spot a bug. Plugin structure follows the [official Claude Code plugin spec](https://code.claude.com/docs/en/plugin-marketplaces).
 
 ## License
 

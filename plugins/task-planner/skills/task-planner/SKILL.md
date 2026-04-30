@@ -45,13 +45,69 @@ Before asking the user anything, read the project's hot context. The goal is to 
 
 Read in this order, stopping when you have enough:
 1. **Hot context** — typically `wiki/_meta/hot.md`, `CLAUDE.md`, or `README.md`. Get a feel for stack, current focus, and recent work.
-2. **Project index** — `wiki/_meta/index.md` or equivalent. See what entities/features already exist that this task might touch.
-3. **Existing similar artifacts** — if the user wants "feature X", scan for entities/features with similar shape. Examples: a "trainer application" task → read `db-club-application.md` + `feature-club-applications.md` first because the pattern is the same. A "leaderboard widget" → read existing widget patterns.
-4. **Schema** — open the schema file (Prisma, SQL, etc.) and skim relevant sections. You don't need to memorize all 40 models — just the ones in the orbit of the new feature.
+2. **Task index** — `wiki/tasks/index.md` if exists. **CRITICAL — see Phase 1.5 below for the business-draft handoff protocol.**
+3. **Project index** — `wiki/_meta/index.md` or equivalent. See what entities/features already exist that this task might touch.
+4. **Existing similar artifacts** — if the user wants "feature X", scan for entities/features with similar shape. Examples: a "trainer application" task → read `db-club-application.md` + `feature-club-applications.md` first because the pattern is the same. A "leaderboard widget" → read existing widget patterns.
+5. **Schema** — open the schema file (Prisma, SQL, etc.) and skim relevant sections. You don't need to memorize all 40 models — just the ones in the orbit of the new feature.
 
 Budget: ≤ 8000 tokens of project context. Don't read the whole codebase.
 
 If the project has no wiki / index / schema, just read the README and ask the user where to find architectural context.
+
+### Phase 1.5 — Business-draft handoff (auto-detection)
+
+**Always run this phase if `wiki/tasks/index.md` exists.** It bridges the non-technical partner's planning skill (`task-business-planner`) and this technical one.
+
+#### 1.5.1 — Scan for business-drafts
+
+Open `wiki/tasks/index.md` and look for the section **"🔮 Бизнес-черновики"** (or `business-drafts` in English). Each row references a task file with frontmatter `status: business-draft` and `ready_for_dev: false`.
+
+Read the title and 1–2 sentence summary of each draft. You're checking whether the user's current request semantically matches one of them.
+
+#### 1.5.2 — Match the request
+
+Test for a match using the user's prompt:
+
+- **Strong match** (recommended action: confirm and use): the user's request is essentially a paraphrase of an existing business-draft title or it explicitly references one ("распиши техплан задачи 002", "возьми бизнес-черновик о рассылках в работу").
+- **Weak match** (recommended action: ask): the request shares a topic or persona with a draft but is broader / narrower (e.g. user asks about "уведомления тренеров" and there's a draft on "рассылка тренеров"). Surface it as a possibility rather than assuming.
+- **No match**: proceed with regular Phase 2 clarification.
+
+#### 1.5.3 — Strong match flow
+
+If you found a strong match, **skip Phase 2 entirely** (the business questions are already answered in the draft) and tell the user:
+
+> "Нашёл бизнес-черновик `wiki/tasks/<file>.md` от партнёра — '<title>'. Беру его за основу и сразу задам технические уточнения."
+
+Then:
+- Read the draft file in full.
+- Treat the "Резюме фичи", "Кто пользователь", "Метрики успеха", "Сценарии использования", "Как выглядит" sections as **already-resolved business context**. Don't re-ask those.
+- Treat the "Открытые бизнес-вопросы" section as **partner-deferred decisions** — surface them in the technical plan as risks or as questions for the user (the developer) to confirm.
+- Jump directly into Phase 3 (technical clarification) — focused only on technical dimensions: schema modeling, cardinality, lifecycle, integration with existing models.
+
+#### 1.5.4 — Weak match flow
+
+If you found a weak match, ask one targeted question via the structured-question tool **before** Phase 2:
+
+> "Нашёл похожий бизнес-черновик от партнёра: '<title>'. Это та же задача или другая?"
+>
+> Options:
+> 1. Та же — берём в работу, дополняем техническим планом.
+> 2. Связана, но это другая фича — учти её как зависимость.
+> 3. Не связана.
+
+Branch on the answer.
+
+#### 1.5.5 — When you finish the technical plan
+
+If you used a business-draft (strong match), the artifact is the **same file** the partner created. You don't make a new one — you append technical sections.
+
+After writing the technical plan, also:
+- Change frontmatter: `status: business-draft` → `status: pending`, `ready_for_dev: false` → `ready_for_dev: true`.
+- Move the row in `wiki/tasks/index.md` from "🔮 Бизнес-черновики" to "🟡 Очередь".
+- Append a row to "История изменений":
+  > `| YYYY-MM-DD | Дополнено техническим планом через task-planner. Status: business-draft → pending. |`
+
+This keeps a clean audit trail: the same file shows the partner's original framing, the technical refinement, and the eventual implementation result.
 
 ### Phase 2 — Clarify (interactive)
 
@@ -190,6 +246,7 @@ Before returning the plan, self-check:
 - [ ] Every non-trivial decision has a stated reason
 - [ ] The artifact follows the project's existing template, not a generic one
 - [ ] No phase is "implement everything" — that's not a phase
+- [ ] If I matched a business-draft in Phase 1.5, I appended to the same file — did NOT create a new one — and changed status to `pending` + `ready_for_dev: true` AND moved the row in `wiki/tasks/index.md` from "Бизнес-черновики" to "Очередь"
 
 If any check fails, revise before producing the final artifact.
 
@@ -202,6 +259,9 @@ If any check fails, revise before producing the final artifact.
 - **Ignoring the project's GOTCHA list.** Re-deriving them is slower and worse than reading them.
 - **Compressing two phases into one to "save time".** Sequential phases are easier to review and roll back.
 - **Skipping the artifact step.** A plan that lives only in chat is lost in 24 hours.
+- **Skipping Phase 1.5 (business-draft scan).** Even if you "feel sure" the user wants a fresh task — if they have business-drafts from a partner, you're at risk of creating a duplicate plan and ignoring the partner's framing. Always scan, even if it adds 30 seconds.
+- **Re-asking business questions when matching a draft.** The partner already answered them. The draft IS the business spec. Re-asking insults the partner's work and burns the developer's time.
+- **Creating a new task file when a business-draft matches.** Append to the existing file. The verbatim partner prompt + your technical plan in one artifact preserves history.
 
 ## Reference files
 

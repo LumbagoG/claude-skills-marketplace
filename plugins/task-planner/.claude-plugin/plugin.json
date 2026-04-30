@@ -1,7 +1,7 @@
 {
   "name": "task-planner",
   "description": "Turn vague feature requests into rigorous, FSD-aware implementation plans with clarifying questions, schema/API design, phased roadmap, risks, and a wiki-task artifact.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "Gleb",
     "email": "gleblubiskin.cursor@gmail.com"
